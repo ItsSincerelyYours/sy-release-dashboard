@@ -1,9 +1,8 @@
 {
+  "buildCommand": "echo 'No build needed'",
+  "outputDirectory": ".",
   "functions": {
-    "api/releases.js": {
-      "runtime": "nodejs22.x"
-    },
-    "api/tasks.js": {
+    "api/**/*.js": {
       "runtime": "nodejs22.x"
     }
   }
