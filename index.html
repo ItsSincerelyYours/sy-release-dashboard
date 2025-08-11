@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SY Release Intelligence Dashboard - LIVE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.8em;
+            background: linear-gradient(90deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .dashboard-header .subtitle {
+            color: #bbb;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #000;
+            transition: all 0.3s ease;
+        }
+
+        .controls-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+        }
+
+        .control-btn.optimization {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        }
+
+        .control-btn.insights {
+            background: linear-gradient(135deg, #667eea 0%, #f093fb 100%);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            color: #000;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(0, 255, 136, 0.4);
+        }
+
+        .metric-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #00ff88;
+        }
+
+        .metric-value {
+            font-size: 2.8em;
+            font-weight: 800;
+            background: linear-gradient(90deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .metric-label {
+            color: #999;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .section-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .section-panel h3 {
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: #ff00ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 18px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 15px;
+            border-left: 4px solid #00ff88;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .timeline-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.2);
+        }
+
+        .timeline-date {
+            font-weight: 700;
+            margin-right: 20px;
+            min-width: 85px;
+            font-size: 0.95em;
+            color: #fff;
+        }
+
+        .timeline-type {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+            margin-right: 15px;
+            text-transform: uppercase;
+        }
+
+        .type-single {
+            background: linear-gradient(135deg, #00ccff, #0099cc);
+            color: #fff;
+        }
+
+        .type-ep {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #000;
+        }
+
+        .type-album {
+            background: linear-gradient(135deg, #ff00ff, #cc00cc);
+            color: #fff;
+        }
+
+        .timeline-artist {
+            color: #00ff88;
+            margin-right: 15px;
+            font-weight: 700;
+            font-size: 1.05em;
+        }
+
+        .timeline-title {
+            flex: 1;
+            font-size: 1.05em;
+            font-weight: 600;
+        }
+
+        .timeline-status {
+            padding: 6px 16px;
+            border-radius: 25px;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 18px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .task-urgent {
+            border-left-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .task-due-soon {
+            border-left-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .task-date {
+            font-weight: 700;
+            margin-right: 18px;
+            min-width: 75px;
+            color: #ddd;
+            font-size: 0.9em;
+        }
+
+        .task-project {
+            color: #ff00ff;
+            margin-right: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .task-name {
+            flex: 1;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .task-assignee {
+            color: #00ff88;
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 4px 10px;
+            background: rgba(0, 255, 136, 0.15);
+            border-radius: 15px;
+        }
+
+        .optimization-item {
+            padding: 20px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 15px;
+            display: flex;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+        }
+
+        .optimization-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .optimization-item.high {
+            border-left-color: #ff4444;
+        }
+
+        .optimization-item.medium {
+            border-left-color: #ffc107;
+        }
+
+        .optimization-item.low {
+            border-left-color: #00ff88;
+        }
+
+        .priority-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: 800;
+            margin-right: 20px;
+            text-transform: uppercase;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .priority-high {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            color: #fff;
+        }
+
+        .priority-medium {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #000;
+        }
+
+        .priority-low {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+        }
+
+        .optimization-content {
+            flex: 1;
+        }
+
+        .optimization-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+            font-size: 1.1em;
+        }
+
+        .optimization-description {
+            color: #bbb;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .optimization-action {
+            color: #00ccff;
+            font-size: 0.9em;
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        .insight-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .insight-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .insight-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            min-width: 35px;
+        }
+
+        .insight-text {
+            font-size: 1em;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            font-size: 1.2em;
+            color: #aaa;
+        }
+
+        .loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 2px solid #333;
+            border-top: 2px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h1>SY Release Intelligence Dashboard</h1>
+        <div class="subtitle">Real-Time Release Portfolio Analytics & Team Intelligence</div>
+        <div class="status-indicator">🔄 Initializing connection...</div>
+    </div>
+
+    <div class="controls-panel">
+        <button class="control-btn active" onclick="showView('overview')">📊 Overview</button>
+        <button class="control-btn" onclick="showView('timeline')">📅 Active Releases</button>
+        <button class="control-btn" onclick="showView('tasks')">📋 Team Tasks</button>
+        <button class="control-btn optimization" onclick="showView('optimizations')">🚀 AI Optimizations</button>
+        <button class="control-btn insights" onclick="showView('insights')">💡 Intelligence</button>
+        <button class="control-btn refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+    </div>
+
+    <!-- Overview Section -->
+    <div id="overview" class="view-section active">
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <h3>📊 Active Releases</h3>
+                <div class="metric-value" id="active-releases">-</div>
+                <div class="metric-label">Projects In Progress</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>🚀 Next Release</h3>
+                <div class="metric-value" id="next-release">-</div>
+                <div class="metric-label" id="next-release-label">Loading...</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>📀 Portfolio Mix</h3>
+                <div class="metric-value" id="release-types">-</div>
+                <div class="metric-label">Release Breakdown</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>✅ Health Score</h3>
+                <div class="metric-value" id="health-status">-</div>
+                <div class="metric-label" id="health-label">Calculating...</div>
+            </div>
+        </div>
+
+        <div class="section-panel">
+            <h3>🎯 Priority Releases (Next 60 Days)</h3>
+            <div id="quick-timeline" class="loading">Loading release data...</div>
+        </div>
+    </div>
+
+    <!-- Timeline Section -->
+    <div id="timeline" class="view-section">
+        <div class="section-panel">
+            <h3>📅 Complete Release Timeline</h3>
+            <div id="timeline-container" class="loading">Loading timeline...</div>
+        </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div id="tasks" class="view-section">
+        <div class="section-panel">
+            <h3>📋 Upcoming Tasks by Priority (Next 30 Days)</h3>
+            <div id="tasks-container" class="loading">Loading tasks...</div>
+        </div>
+    </div>
+
+    <!-- Optimizations Section -->
+    <div id="optimizations" class="view-section">
+        <div class="section-panel">
+            <h3>🤖 AI-Powered Strategic Optimizations</h3>
+            <div id="optimizations-container" class="loading">Analyzing workflow for optimizations...</div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    <div id="insights" class="view-section">
+        <div class="section-panel">
+            <h3>💡 Strategic Intelligence & Pattern Analysis</h3>
+            <div id="insights-container" class="loading">Generating strategic insights...</div>
+        </div>
+    </div>
+
+    <script>
+        // Global data storage
+        let releaseProjects = [];
+        let allTasks = [];
+        let optimizations = [];
+        let insights = [];
+
+        // API Configuration
+        const API_BASE = window.location.origin;
+
+        // Load release projects from API
+        async function loadReleaseProjects() {
+            try {
+                console.log('Loading release projects from API...');
+                const response = await fetch(`${API_BASE}/api/releases`);
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'API returned error');
+                }
+                
+                releaseProjects = data.projects || [];
+                console.log(`Loaded ${releaseProjects.length} release projects`);
+                return releaseProjects;
+                
+            } catch (error) {
+                console.error('Error loading release projects:', error);
+                // Fallback to demo data on error
+                console.log('Falling back to demo data...');
+                loadDemoReleases();
+                throw error;
+            }
+        }
+
+        // Load tasks from API
+        async function loadAllTasks() {
+            try {
+                console.log('Loading tasks from API...');
+                const response = await fetch(`${API_BASE}/api/tasks`);
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'API returned error');
+                }
+                
+                allTasks = data.tasks || [];
+                console.log(`Loaded ${allTasks.length} upcoming tasks`);
+                return allTasks;
+                
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                // Fallback to demo data on error
+                console.log('Falling back to demo tasks...');
+                loadDemoTasks();
+                throw error;
+            }
+        }
+
+        // Demo data fallback functions
+        function loadDemoReleases() {
+            releaseProjects = [
+                {
+                    gid: 'demo1',
+                    name: '[Single] Daju - Brand New',
+                    due_date: '2025-08-13',
+                    owner: { name: 'Stephanie Le' }
+                },
+                {
+                    gid: 'demo2', 
+                    name: '[EP Release] 646yf4t - Growing Pains',
+                    due_date: '2025-08-22',
+                    owner: { name: 'Stephanie Le' }
+                },
+                {
+                    gid: 'demo3',
+                    name: '[EP Release] Day Lee - What Once Was Lost', 
+                    due_date: '2025-09-12',
+                    owner: { name: 'Stephanie Le' }
+                }
+            ];
+        }
+
+        function loadDemoTasks() {
+            allTasks = [
+                { name: 'Final master approval', due_on: '2025-08-13', assignee: { name: 'Jermayne' }, project_name: 'Brand New', project_gid: 'demo1' },
+                { name: 'Distribution upload', due_on: '2025-08-13', assignee: { name: 'Stephanie' }, project_name: 'Brand New', project_gid: 'demo1' },
+                { name: 'Social media announcement', due_on: '2025-08-14', assignee: { name: 'Brooke' }, project_name: 'Brand New', project_gid: 'demo1' },
+                { name: 'Marketing form submission', due_on: '2025-08-15', assignee: { name: 'Jocelyn' }, project_name: 'Growing Pains', project_gid: 'demo2' }
+            ];
+        }
+
+        // Generate AI optimizations based on real data
+        function generateOptimizations() {
+            optimizations = [];
+            const today = new Date();
+
+            // Check for releases without due dates
+            const projectsWithoutDates = releaseProjects.filter(p => !p.due_date);
+            if (projectsWithoutDates.length > 0) {
+                optimizations.push({
+                    priority: 'high',
+                    title: 'Missing Release Dates',
+                    description: `${projectsWithoutDates.length} release project(s) don't have due dates set`,
+                    action: 'Set due dates for proper timeline management'
+                });
+            }
+
+            // Check for task distribution
+            const assigneeTaskCounts = {};
+            allTasks.forEach(task => {
+                const assignee = task.assignee?.name || 'Unassigned';
+                assigneeTaskCounts[assignee] = (assigneeTaskCounts[assignee] || 0) + 1;
+            });
+
+            const maxTasks = Math.max(...Object.values(assigneeTaskCounts));
+            if (maxTasks > 5) {
+                const overloadedAssignee = Object.keys(assigneeTaskCounts).find(k => assigneeTaskCounts[k] === maxTasks);
+                optimizations.push({
+                    priority: 'medium',
+                    title: 'Task Distribution Imbalance',
+                    description: `${overloadedAssignee} has ${maxTasks} upcoming tasks. Consider redistributing workload.`,
+                    action: 'Review task assignments and balance team capacity'
+                });
+            }
+
+            // Check for unassigned tasks
+            const unassignedTasks = allTasks.filter(t => !t.assignee);
+            if (unassignedTasks.length > 0) {
+                optimizations.push({
+                    priority: 'medium',
+                    title: 'Unassigned Tasks',
+                    description: `${unassignedTasks.length} upcoming tasks are unassigned`,
+                    action: 'Assign owners to all release-critical tasks'
+                });
+            }
+
+            return optimizations;
+        }
+
+        // Generate insights from data
+        function generateInsights() {
+            insights = [];
+
+            insights.push({
+                icon: '📊',
+                text: `${releaseProjects.length} active release projects in the pipeline`
+            });
+
+            // Release type breakdown
+            const typeBreakdown = {};
+            releaseProjects.forEach(project => {
+                const name = project.name.toLowerCase();
+                if (name.includes('ep')) typeBreakdown.EP = (typeBreakdown.EP || 0) + 1;
+                else if (name.includes('single')) typeBreakdown.Single = (typeBreakdown.Single || 0) + 1;
+                else if (name.includes('album')) typeBreakdown.Album = (typeBreakdown.Album || 0) + 1;
+                else typeBreakdown.Other = (typeBreakdown.Other || 0) + 1;
+            });
+
+            const typeText = Object.entries(typeBreakdown).map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`).join(', ');
+            insights.push({
+                icon: '🎵',
+                text: `Release portfolio: ${typeText}`
+            });
+
+            insights.push({
+                icon: '📋',
+                text: `${allTasks.length} upcoming tasks across all releases (next 30 days)`
+            });
+
+            const teamMembers = [...new Set(allTasks.map(t => t.assignee?.name).filter(Boolean))];
+            insights.push({
+                icon: '👥',
+                text: `${teamMembers.length} team members actively assigned to release tasks`
+            });
+
+            return insights;
+        }
+
+        // Populate UI functions
+        function populateOverview() {
+            document.getElementById('active-releases').textContent = releaseProjects.length;
+
+            // Find next release
+            const upcomingReleases = releaseProjects
+                .filter(p => p.due_date && new Date(p.due_date) >= new Date())
+                .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+            if (upcomingReleases.length > 0) {
+                const nextRelease = upcomingReleases[0];
+                const daysUntil = Math.ceil((new Date(nextRelease.due_date) - new Date()) / (1000 * 60 * 60 * 24));
+                document.getElementById('next-release').textContent = daysUntil === 0 ? 'Today' : 
+                    daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`;
+                document.getElementById('next-release-label').textContent = cleanReleaseName(nextRelease.name);
+            } else {
+                document.getElementById('next-release').textContent = 'None';
+                document.getElementById('next-release-label').textContent = 'No scheduled releases';
+            }
+
+            // Release types
+            const epCount = releaseProjects.filter(p => p.name.toLowerCase().includes('ep')).length;
+            const singleCount = releaseProjects.filter(p => p.name.toLowerCase().includes('single')).length;
+            
+            const typeArray = [];
+            if (epCount > 0) typeArray.push(`${epCount} EP${epCount > 1 ? 's' : ''}`);
+            if (singleCount > 0) typeArray.push(`${singleCount} Single${singleCount > 1 ? 's' : ''}`);
+            
+            document.getElementById('release-types').textContent = typeArray.join(' / ') || 'No releases';
+
+            // Health status
+            const healthyProjects = releaseProjects.filter(p => p.due_date).length;
+            const healthPercent = releaseProjects.length > 0 ? Math.round((healthyProjects / releaseProjects.length) * 100) : 100;
+            document.getElementById('health-status').textContent = `${healthPercent}%`;
+            document.getElementById('health-label').textContent = healthPercent === 100 ? 'All Projects Tracked' : 'Some Missing Dates';
+        }
+
+        function populateQuickTimeline() {
+            const container = document.getElementById('quick-timeline');
+            container.innerHTML = '';
+            
+            const upcomingReleases = releaseProjects
+                .filter(p => p.due_date)
+                .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+                .slice(0, 3);
+
+            if (upcomingReleases.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No upcoming releases with dates found</div>';
+                return;
+            }
+
+            upcomingReleases.forEach(release => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                
+                const releaseType = getReleaseType(release.name);
+                const typeClass = `type-${releaseType.toLowerCase()}`;
+                
+                item.innerHTML = `
+                    <div class="timeline-date">${formatDate(release.due_date)}</div>
+                    <div class="timeline-type ${typeClass}">${releaseType}</div>
+                    <div class="timeline-artist">${extractArtist(release.name)}</div>
+                    <div class="timeline-title">${cleanReleaseName(release.name)}</div>
+                    <div class="timeline-status">Active</div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function populateTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            
+            const sortedReleases = releaseProjects
+                .filter(p => p.due_date)
+                .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+            if (sortedReleases.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No releases with dates found</div>';
+                return;
+            }
+
+            sortedReleases.forEach(release => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                
+                const releaseType = getReleaseType(release.name);
+                const typeClass = `type-${releaseType.toLowerCase()}`;
+                
+                item.innerHTML = `
+                    <div class="timeline-date">${formatDate(release.due_date)}</div>
+                    <div class="timeline-type ${typeClass}">${releaseType}</div>
+                    <div class="timeline-artist">${extractArtist(release.name)}</div>
+                    <div class="timeline-title">${cleanReleaseName(release.name)}</div>
+                    <div class="timeline-status">Active</div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function populateTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+            
+            if (allTasks.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No upcoming tasks found in the next 30 days</div>';
+                return;
+            }
+
+            allTasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = 'task-item';
+                
+                // Add urgency classes
+                const today = new Date();
+                const dueDate = new Date(task.due_on);
+                const daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                
+                if (daysUntil < 0) {
+                    item.classList.add('task-urgent');
+                } else if (daysUntil <= 3) {
+                    item.classList.add('task-due-soon');
+                }
+                
+                item.innerHTML = `
+                    <div class="task-date">${formatDate(task.due_on)}</div>
+                    <div class="task-project">${cleanProjectName(task.project_name)}</div>
+                    <div class="task-name">${task.name}</div>
+                    <div class="task-assignee">${task.assignee?.name || 'Unassigned'}</div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function populateOptimizations() {
+            const container = document.getElementById('optimizations-container');
+            container.innerHTML = '';
+            
+            if (optimizations.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No optimization recommendations - workflow is running smoothly!</div>';
+                return;
+            }
+
+            optimizations.forEach(opt => {
+                const item = document.createElement('div');
+                item.className = `optimization-item ${opt.priority}`;
+                
+                item.innerHTML = `
+                    <div class="priority-badge priority-${opt.priority}">${opt.priority}</div>
+                    <div class="optimization-content">
+                        <div class="optimization-title">${opt.title}</div>
+                        <div class="optimization-description">${opt.description}</div>
+                        <div class="optimization-action">→ ${opt.action}</div>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function populateInsights() {
+            const container = document.getElementById('insights-container');
+            container.innerHTML = '';
+            
+            if (insights.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">Generating insights...</div>';
+                return;
+            }
+
+            insights.forEach(insight => {
+                const item = document.createElement('div');
+                item.className = 'insight-item';
+                
+                item.innerHTML = `
+                    <span class="insight-icon">${insight.icon}</span>
+                    <span class="insight-text">${insight.text}</span>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        // Utility functions
+        function getReleaseType(name) {
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes('ep')) return 'EP';
+            if (lowerName.includes('single')) return 'Single';
+            if (lowerName.includes('album')) return 'Album';
+            return 'Release';
+        }
+
+        function extractArtist(projectName) {
+            // Try to extract artist name from project name
+            const match = projectName.match(/(?:\[.*?\]\s*)?(.+?)\s*-\s*(.+)/);
+            if (match) return match[1].trim();
+            return 'Unknown Artist';
+        }
+
+        function cleanReleaseName(projectName) {
+            // Remove project type prefixes and clean up
+            return projectName.replace(/^\[.*?\]\s*/, '').trim();
+        }
+
+        function cleanProjectName(projectName) {
+            // Shorten project names for task view
+            const cleaned = cleanReleaseName(projectName);
+            return cleaned.length > 20 ? cleaned.substring(0, 17) + '...' : cleaned;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const options = { month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function showView(viewName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.view-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(viewName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.control-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Find and activate the clicked button
+            event.target.classList.add('active');
+        }
+
+        // Main data loading function
+        async function loadAllData() {
+            const statusIndicator = document.querySelector('.status-indicator');
+            
+            try {
+                // Update status
+                statusIndicator.textContent = '🔄 Loading live data from Asana...';
+                statusIndicator.style.background = 'linear-gradient(135deg, #ffc107, #ff9800)';
+                
+                // Load data
+                await loadReleaseProjects();
+                await loadAllTasks();
+                
+                // Generate insights based on real data
+                generateOptimizations();
+                generateInsights();
+                
+                // Populate all UI sections
+                populateOverview();
+                populateQuickTimeline();
+                populateTimeline();
+                populateTasks();
+                populateOptimizations();
+                populateInsights();
+                
+                // Update status to success
+                statusIndicator.textContent = `✅ Live Data Connected - ${releaseProjects.length} projects, ${allTasks.length} tasks`;
+                statusIndicator.style.background = 'linear-gradient(135deg, #00ff88, #00ccff)';
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                
+                // Generate insights based on demo data
+                generateOptimizations();
+                generateInsights();
+                
+                // Populate UI with demo data
+                populateOverview();
+                populateQuickTimeline();
+                populateTimeline();
+                populateTasks();
+                populateOptimizations();
+                populateInsights();
+                
+                // Update status to show demo mode
+                statusIndicator.textContent = '🎭 Demo Mode - Live API Connection Failed';
+                statusIndicator.style.background = 'linear-gradient(135deg, #ff6b6b, #feca57)';
+            }
+        }
+
+        // Refresh data function
+        async function refreshData() {
+            const statusIndicator = document.querySelector('.status-indicator');
+            statusIndicator.textContent = '🔄 Refreshing data...';
+            await loadAllData();
+        }
+
+        // Initialize dashboard
+        window.onload = function() {
+            console.log('SY Release Intelligence Dashboard - Live Version Initializing...');
+            loadAllData();
+        };
+    </script>
+</body>
+</html>
